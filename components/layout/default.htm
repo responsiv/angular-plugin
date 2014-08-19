@@ -1,0 +1,56 @@
+<script src="/octotest/plugins/responsiv/angular/assets/js/angular-bridge.js"></script>
+
+<script>
+
+
+{% for page in pages %}
+
+    ocNg.controllers['{{ page.baseFileName }}'] = function($scope, $request) {
+        $scope.pageId = '{{ page.id}} yep ' + $request('onGetCustomers');
+    }
+
+{% endfor %}
+
+var ocNgApp = angular.module('{{ __SELF__ }}', [
+      'ngRoute',
+      'ocServices'
+    ])
+    .config(['$routeProvider', '$cmsRouterProvider', '$locationProvider', '$controllerProvider', '$compileProvider', '$filterProvider', '$provide',
+            function ($routeProvider, $cmsRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
+
+        /*
+         * Switch on HTML5 mode
+         */
+        $locationProvider.html5Mode(true)
+
+        // Change default views and controllers directory using the following:
+        // $cmsRouterProvider.routeConfig.setBaseDirectories('/app/views', '/app/controllers');
+
+        ocNgApp.register = {
+            controller: $controllerProvider.register,
+            directive: $compileProvider.directive,
+            filter: $filterProvider.register,
+            factory: $provide.factory,
+            service: $provide.service
+        }
+
+        // Define routes - controllers will be loaded dynamically
+        var route = $cmsRouterProvider.route;
+
+        {% for page in pages %}
+
+            $routeProvider.when('{{ page.url }}', route.resolve(
+                '{{ page.baseFileName }}',
+                '{{ page.baseFilename|page }}'
+            ))
+        {% endfor %}
+
+        return ocNgApp
+    }]),
+    {{ __SELF__ }} = ocNgApp
+
+ocNg.bootApp(ocNgApp)
+
+
+</script>
+
