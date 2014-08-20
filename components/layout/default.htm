@@ -2,87 +2,56 @@
 
 <script>
 
-var app = angular.module('{{ __SELF__ }}', [
-  'ngRoute',
-  'ngAnimate',
-  'ocServices'
-]), {{ __SELF__ }} = app
+    var app = angular.module('{{ __SELF__ }}', [
+      'ngRoute',
+      'ngAnimate',
+      'ocServices'
+    ]), {{ __SELF__ }} = app
 
-app.config(
-    ['$routeProvider', '$cmsRouterProvider', '$locationProvider', '$controllerProvider', '$compileProvider', '$filterProvider', '$provide',
-    function ($routeProvider, $cmsRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
+    app.config(
+        ['$routeProvider', '$cmsRouterProvider', '$locationProvider', '$controllerProvider', '$compileProvider', '$filterProvider', '$provide',
+        function ($routeProvider, $cmsRouterProvider, $locationProvider, $controllerProvider, $compileProvider, $filterProvider, $provide) {
 
-    /*
-     * Switch on HTML5 mode
-     */
-    $locationProvider.html5Mode(true)
+        /*
+         * Switch on HTML5 mode
+         */
+        $locationProvider.html5Mode(true)
 
-    /*
-     * Helpers
-     */
-    app.register = {
-        controller: $controllerProvider.register,
-        directive: $compileProvider.directive,
-        filter: $filterProvider.register,
-        factory: $provide.factory,
-        service: $provide.service
-    }
+        /*
+         * Helpers
+         */
+        app.register = {
+            controller: $controllerProvider.register,
+            directive: $compileProvider.directive,
+            filter: $filterProvider.register,
+            factory: $provide.factory,
+            service: $provide.service
+        }
 
-    /*
-     * Configure the router
-     */
-    var routeConfig = $cmsRouterProvider.routeConfig
+        /*
+         * Configure the router
+         */
+        var routeConfig = $cmsRouterProvider.routeConfig
 
-    // Change base directory to use the master page as root:
-    // routeConfig.setBaseDirectory('/')
+        // Change base directory to use the master page as root:
+        // routeConfig.setBaseDirectory('/')
 
-    {% for page in pages %}
-        routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.baseFilename|page({}, false) }}')
-    {% endfor %}
+        {% for page in pages %}
+            routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.baseFilename|page({}, false) }}')
+        {% endfor %}
 
-    /*
-     * Define routes - controllers will be loaded dynamically
-     */
-    var route = $cmsRouterProvider.route
+        /*
+         * Define routes - controllers will be loaded dynamically
+         */
+        var route = $cmsRouterProvider.route
 
-    {% for page in pages %}
-        $routeProvider.when('{{ page.url }}', route.resolve('{{ page.baseFileName }}'))
-    {% endfor %}
+        {% for page in pages %}
+            $routeProvider.when('{{ page.url }}', route.resolve('{{ page.baseFileName }}'))
+        {% endfor %}
 
-    return app
-}])
+        return app
+    }])
 
-// $rootScope.$on('$includeContentRequested', function() {
-//     console.log(arguments)
-// });
-
-ocNg.bootApp(app)
-
-// app.controller(ocNg.controllers);
-
-// .controller('MyCtrl1', ['$scope', function($scope) {
-
-//         $scope.$on("$locationChangeStart", function (event, next, current) {
-
-//             var el, elId;
-//             console.log(next)
-//             console.log(current)
-//             // window.location = next
-//             // event.preventDefault();
-
-//             // if (next.indexOf("#")>-1) {
-//             //     elId = next.split("#")[1];
-//             //     el = document.getElementById(elId);
-//             //     if(el){
-//             //        // el.scrollIntoView(); do not think we need it
-//             //        window.location.hash = "#" + elId;
-//             //        event.preventDefault();
-//             //     }    
-//             // }
-//         });
-
-
-//     }])
-
+    ocNg.bootApp(app)
 
 </script>

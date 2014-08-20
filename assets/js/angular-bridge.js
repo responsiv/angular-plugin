@@ -23,6 +23,20 @@ if (typeof angular == 'undefined')
 
             bootApp: function (app) {
                 o.app = app
+
+                app.run(['$rootScope','$location', '$routeParams', function($rootScope, $location, $routeParams) {
+
+                    $rootScope.$on('$routeChangeSuccess', function(e, current, pre) {
+                        console.log('Current route name: ' + $location.path());
+                    })
+
+                    // Bind
+                    // $locationChangeSuccess
+                    // $locationChangeStart
+                    // $routeChangeSuccess
+                    // as
+                    // document.render()
+                }])
             },
 
             //
