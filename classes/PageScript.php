@@ -49,6 +49,19 @@ class PageScript
         $this->writeTemplateScript($content);
     }
 
+    /**
+     * Returns the public path to the template script file.
+     * @return string
+     */
+    public function getPublicPath()
+    {
+        $path = $this->getTemplateScriptPath();
+        if (!File::isFile($path))
+            return;
+
+        return File::localToPublic($path);
+    }
+
     protected function getTemplateScriptPath()
     {
         $theme = Theme::getEditTheme();

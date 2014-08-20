@@ -1,10 +1,12 @@
 <?php namespace Responsiv\Angular\Components;
 
 use Auth;
+use File;
 use Request;
 use Redirect;
 use Cms\Classes\Page;
 use Cms\Classes\ComponentBase;
+use Responsiv\Angular\Classes\PageScript;
 
 /**
  * Angular Layout
@@ -34,9 +36,35 @@ class Layout extends ComponentBase
         ];
     }
 
+    public function init()
+    {
+        // $this->addJs('assets/js/angular-bridge.js');
+    }
+
     public function onRun()
     {
         $this->page['pages'] = Page::all();
+    }
+
+    public function onGetPageDependencies()
+    {
+        $response = [];
+
+        traceLog($this->page['this']['page']->id);
+        $page = array_get($this->page['this'], 'page');
+        $pageScript = PageScript::fromTemplate($page);
+
+        if ($scriptPath = $pageScript->getPublicPath())
+            $this->addJs($scriptPath.'?v='.$page->mtime);
+
+        /*
+         * Detect assets
+         */
+        if ($this->controller->hasAssetsDefined()) {
+            $response['X_OCTOBER_ASSETS'] = $this->controller->getAssetPaths();
+        }
+
+        return $response;
     }
 
 }

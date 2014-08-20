@@ -29,7 +29,7 @@ if (typeof angular == 'undefined')
             // This function will load the assets for a page, including the controller
             // script and execute onComplete function once everything is good to go.
             //
-            loadPage: function (baseFilename, onComplete){
+            loadPage: function (baseFilename, url, params, onComplete){
                 // This function should:
                 // - Load X_OCTOBER_ASSETS definition
                 // - Definition should include the page controller function,
@@ -39,10 +39,19 @@ if (typeof angular == 'undefined')
                 // The appending of the assets should be recorded by the page-id
                 // so they can be removed from the DOM (stylesheets, JS, etc)
 
-                setTimeout(function(){
-                    o.app.register.controller(baseFilename, o.controllers[baseFilename])
-                    onComplete()
-                }, 2000)
+                var options = {}
+                options.url = url
+                options.success = function(data) {
+                    this.success(data).done(function(){
+                        if (!o.controllers[baseFilename])
+                            o.controllers[baseFilename] = function(){}
+
+                        o.app.register.controller(baseFilename, o.controllers[baseFilename])
+                        onComplete()
+                    })
+                }
+
+                $.request('onGetPageDependencies', options)
             }
 
             // leavePage: function (baseFilename) {
@@ -72,6 +81,76 @@ if (typeof angular == 'undefined')
     var services = angular.module('ocServices', [])
 
     /*
+     * Blocks
+     */
+    services.service('$cmsBlocks', function($rootScope, $compile){
+
+        var o = {}
+
+        o.map = {}
+        o.blocks = []
+        o.puts = {}
+
+        o.put = function (name, element) {
+            o.puts[name] = element
+
+            if (o.map[name] !== undefined) {
+                o.map[name].html(element.html())
+                $compile(o.map[name].contents())($rootScope)
+            }
+        }
+
+        o.placeholder = function (name, element) {
+            o.blocks.push(element)
+            o.map[name] = element
+
+            if (o.puts[name] !== undefined) {
+                element.html(o.puts[name].html())
+                $compile(element.contents())($rootScope)
+            }
+        }
+
+        $rootScope.$on('$routeChangeSuccess', function(){
+            o.puts = {}
+            for (var i = 0; i < o.blocks.length; ++i) {
+                o.blocks[i].empty()
+            }
+        })
+
+        return o
+    })
+
+    services.directive('ocPut', ['$cmsBlocks', function ($cmsBlocks) {
+        return {
+            link: function(scope, element, attr, controllers) {
+                $cmsBlocks.put(attr.ocPut, element.clone())
+                element.remove()
+            }
+        }
+    }])
+
+    services.directive('ocPlaceholder', ['$cmsBlocks', function ($cmsBlocks) {
+        return {
+            link: function(scope, element, attr, controllers) {
+                $cmsBlocks.placeholder(attr.ocPlaceholder, element)
+            }
+        }
+    }])
+
+    /*
+     * Partial loading
+     */
+    services.directive('ocPartial', [function () {
+        return {
+            link: function(scope, element, attr, controllers) {
+                scope.partialUrl = '?ng-partial='+attr.ocPartial
+            },
+            transclude: true,
+            template: '<div ng-include="partialUrl"></div>'
+        }
+    }])
+
+    /*
      * AJAX framework
      */
     services.service('$request', function(){
@@ -92,48 +171,55 @@ if (typeof angular == 'undefined')
         }
 
         this.routeConfig = function () {
-            var viewsDirectory = '/app/views/',
-                controllersDirectory = '/app/controllers/',
+            var pageViewMap = {},
+                baseDirectory = '/',
 
-            setBaseDirectories = function (viewsDir, controllersDir) {
-                viewsDirectory = viewsDir;
-                controllersDirectory = controllersDir;
+            setBaseDirectory = function (baseDir) {
+                baseDirectory = baseDir;
             },
 
-            getViewsDirectory = function () {
-                return viewsDirectory;
+            getBaseDirectory = function () {
+                return baseDirectory;
             },
 
-            getControllersDirectory = function () {
-                return controllersDirectory;
+            mapPage = function(pageName, viewUrl) {
+                pageViewMap[pageName] = viewUrl
+            },
+
+            getPageView = function(pageName) {
+                return pageViewMap[pageName]
             }
 
             return {
-                setBaseDirectories: setBaseDirectories,
-                getControllersDirectory: getControllersDirectory,
-                getViewsDirectory: getViewsDirectory
+                setBaseDirectory: setBaseDirectory,
+                getBaseDirectory: getBaseDirectory,
+                mapPage: mapPage,
+                getPageView: getPageView
             }
         }()
 
         this.route = function (routeConfig) {
 
-            var resolve = function (baseName, url) {
-                var routeDef = {};
-                routeDef.templateUrl = function(params) { return makeTemplateUrl(url, params) }
+            var resolve = function (baseName) {
+                var routeDef = {}
+
+                routeDef.templateUrl = function(params) { return makeTemplateUrl(baseName, params) }
                 routeDef.controller = baseName
                 routeDef.resolve = {
-                    load: ['$q', '$rootScope', function ($q, $rootScope) {
-                        return resolveDependencies($q, $rootScope, baseName);
+                    load: ['$q', '$rootScope', '$route', function ($q, $rootScope, $route) {
+                        return resolveDependencies($q, $rootScope, $route, baseName)
                     }]
-                };
+                }
 
-                return routeDef;
+                return routeDef
             },
 
-            resolveDependencies = function ($q, $rootScope, baseName) {
-                var defer = $q.defer()
+            resolveDependencies = function ($q, $rootScope, $route, baseName) {
+                var url = routeConfig.getPageView(baseName),
+                    params = $route.current.params,
+                    defer = $q.defer()
 
-                october.loadPage(baseName, function(){
+                october.loadPage(baseName, url, params, function(){
                     defer.resolve()
                     $rootScope.$apply()
                 })
@@ -141,14 +227,8 @@ if (typeof angular == 'undefined')
                 return defer.promise;
             },
 
-            makeTemplateUrl = function (url, params) {
-                // This function should apply the parameters
-                // values to the URL string
-                // url "/blog/:postId"
-                // params { postId: 7}
-                // returns "/blog/7"
-                // 
-
+            makeTemplateUrl = function (baseName, params) {
+                var url = routeConfig.getPageView(baseName)
                 return url + '?ng-page'
             }
 
@@ -288,28 +368,3 @@ AssetManager = function() {
 };
 
 assetManager = new AssetManager();
-
-/*
- * Inverse Click Event
- *
- * Calls the handler function if the user has clicked outside the object 
- * and not on any of the elements in the exception list.
- */
-
- $.fn.extend({
-    clickOutside: function(handler, exceptions) {
-        var $this = this;
-
-        $('body').on('click', function(event) {
-            if (exceptions && $.inArray(event.target, exceptions) > -1) {
-                return;
-            } else if ($.contains($this[0], event.target)) {
-                return;
-            } else {
-                handler(event, $this);
-            }
-        });
-
-        return this;
-    }
-})

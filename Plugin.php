@@ -33,13 +33,9 @@ class Plugin extends PluginBase
                 $page->layout = null;
         });
 
-        Event::listen('cms.page.render', function($controller, $contents) {
-            if (array_key_exists('ng-page', Input::all()))
-                return;
-
-            return '<ng-view>'.$contents.'</ng-view>';
-            if (array_key_exists('ng-layout', Input::all()))
-                return '<ng-view></ng-view>';
+        Event::listen('cms.page.init', function($controller, $url, $page) {
+            if ($partial = post('ng-partial'))
+                return $controller->renderPartial($partial);
         });
 
         Event::listen('backend.form.extendFields', function($widget) {
