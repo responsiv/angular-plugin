@@ -85,43 +85,46 @@ if (typeof angular == 'undefined')
 
         var o = {}
 
-        o.blocks = []
+        o.names = []
         o.map = {}
         o.puts = {}
-        o.previousElement = null
 
         o.put = function (name, element) {
             o.puts[name] = element
 
             if (o.map[name] !== undefined)
-                o.replaceContent(o.map[name], element)
+                o.replaceContent(o.map[name], element, name)
         }
 
         o.placeholder = function (name, element) {
-            o.blocks.push(element)
+            o.names.push(name)
             o.map[name] = element
 
             if (o.puts[name] !== undefined)
-                o.replaceContent(element, o.puts[name])
+                o.replaceContent(element, o.puts[name], name)
         }
 
-        o.replaceContent = function($element, src) {
-            if (o.previousElement) {
-                $animate.leave(o.previousElement)
-                o.previousElement = null
-            }
-
-            var clone = $element.clone().html(src.html())
+        o.replaceContent = function($element, src, name) {
+            var clone = $element.clone().html(src.html()).removeClass('ng-leave')
             $compile(clone.contents())($rootScope)
 
             $animate.enter(clone, null, $element);
-            o.previousElement = clone
+            $animate.leave($element)
+            o.map[name] = clone
         }
 
         $rootScope.$on('$routeChangeSuccess', function(){
             o.puts = {}
-            for (var i = 0; i < o.blocks.length; ++i) {
-                o.blocks[i].empty()
+            for (var i = 0; i < o.names.length; ++i) {
+                var name = o.names[i]
+                if (o.map[name] !== undefined) {
+                    var $element = o.map[name],
+                        clone = $element.clone()
+
+                    $element.after(clone)
+                    $element.empty()
+                    $animate.leave(clone)
+                }
             }
         })
 
