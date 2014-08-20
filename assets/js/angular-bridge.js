@@ -70,8 +70,6 @@ if (typeof angular == 'undefined')
 
 }(angular, window);
 
-
-
 /*
  * October-Angular Services
  */
@@ -83,31 +81,41 @@ if (typeof angular == 'undefined')
     /*
      * Blocks
      */
-    services.service('$cmsBlocks', function($rootScope, $compile){
+    services.service('$cmsBlocks', function($rootScope, $compile, $animate){
 
         var o = {}
 
-        o.map = {}
         o.blocks = []
+        o.map = {}
         o.puts = {}
+        o.previousElement = null
 
         o.put = function (name, element) {
             o.puts[name] = element
 
-            if (o.map[name] !== undefined) {
-                o.map[name].html(element.html())
-                $compile(o.map[name].contents())($rootScope)
-            }
+            if (o.map[name] !== undefined)
+                o.replaceContent(o.map[name], element)
         }
 
         o.placeholder = function (name, element) {
             o.blocks.push(element)
             o.map[name] = element
 
-            if (o.puts[name] !== undefined) {
-                element.html(o.puts[name].html())
-                $compile(element.contents())($rootScope)
+            if (o.puts[name] !== undefined)
+                o.replaceContent(element, o.puts[name])
+        }
+
+        o.replaceContent = function($element, src) {
+            if (o.previousElement) {
+                $animate.leave(o.previousElement)
+                o.previousElement = null
             }
+
+            var clone = $element.clone().html(src.html())
+            $compile(clone.contents())($rootScope)
+
+            $animate.enter(clone, null, $element);
+            o.previousElement = clone
         }
 
         $rootScope.$on('$routeChangeSuccess', function(){
