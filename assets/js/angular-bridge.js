@@ -133,11 +133,11 @@ if (typeof angular == 'undefined')
                 var name = o.names[i]
                 if (o.map[name] !== undefined) {
                     var $element = o.map[name],
-                        clone = $element.clone()
+                        clone = $element.clone().empty().removeClass('ng-leave')
 
                     $element.after(clone)
-                    $element.empty()
-                    $animate.leave(clone)
+                    $animate.leave($element)
+                    o.map[name] = clone
                 }
             }
         })
@@ -178,13 +178,29 @@ if (typeof angular == 'undefined')
     /*
      * AJAX framework
      */
-    services.service('$request', function(){
+    services.service('$request', ['$rootScope', function($rootScope){
         return function(handler, option) {
 
-            // return $.request(handler, option)
-            return handler + "name"
+            /*
+             * Short hand call
+             */
+            if (typeof option == 'function') {
+                return $.request(handler).done(function(data, textStatus, jqXHR){
+                    var singularData = data.result  ? data.result : data
+                    option(singularData, data, textStatus, jqXHR)
+                    $rootScope.$apply()
+                })
+            }
+
+            /*
+             * Standard call
+             */
+            return $.request(handler, option).done(function(){
+                // Make lowest priority
+                setTimeout(function(){ $rootScope.$apply() }, 0)
+            })
         }
-    })
+    }])
 
     /*
      * CMS Router
@@ -246,7 +262,7 @@ if (typeof angular == 'undefined')
 
                 october.loadPage(baseName, url, params, function(){
                     defer.resolve()
-                    $rootScope.$apply()
+                    // $rootScope.$apply() @todo needed?
                 })
 
                 return defer.promise;
