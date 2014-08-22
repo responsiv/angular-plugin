@@ -36,8 +36,11 @@ class Layout extends ComponentBase
         ];
     }
 
+    public $scope;
+
     public function init()
     {
+        $this->scope = $this->page['scope'] = new \stdClass;
         // $this->addJs('assets/js/angular-bridge.js');
     }
 
@@ -50,7 +53,6 @@ class Layout extends ComponentBase
     {
         $response = [];
 
-        traceLog($this->page['this']['page']->id);
         $page = array_get($this->page['this'], 'page');
         $pageScript = PageScript::fromTemplate($page);
 

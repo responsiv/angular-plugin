@@ -2,6 +2,7 @@
 
 use Input;
 use Event;
+use Request;
 use System\Classes\PluginBase;
 use Responsiv\Angular\Classes\PageScript;
 
@@ -28,9 +29,9 @@ class Plugin extends PluginBase
 
     public function boot()
     {
-        Event::listen('cms.page.beforeDisplay', function($controller, $url, $page) {
+        Event::listen('cms.page.display', function($controller, $url, $page) {
             if (array_key_exists('ng-page', Input::all()))
-                $page->layout = null;
+                return $controller->renderPage();
         });
 
         Event::listen('cms.page.init', function($controller, $url, $page) {
