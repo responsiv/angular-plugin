@@ -178,14 +178,18 @@ if (typeof angular == 'undefined')
     /*
      * AJAX framework
      */
-    services.service('$request', ['$rootScope', function($rootScope){
+    services.service('$request', ['$rootScope', '$route', function($rootScope, $route){
         return function(handler, option) {
+
+            var requestOptions = {
+                url: $route.current.loadedTemplateUrl
+            }
 
             /*
              * Short hand call
              */
             if (typeof option == 'function') {
-                return $.request(handler).done(function(data, textStatus, jqXHR){
+                return $.request(handler, requestOptions).done(function(data, textStatus, jqXHR){
                     var singularData = data.result  ? data.result : data
                     option(singularData, data, textStatus, jqXHR)
                     $rootScope.$apply()
@@ -195,7 +199,7 @@ if (typeof angular == 'undefined')
             /*
              * Standard call
              */
-            return $.request(handler, option).done(function(){
+            return $.request(handler, $.extend(true, requestOptions, option)).done(function(){
                 // Make lowest priority
                 setTimeout(function(){ $rootScope.$apply() }, 0)
             })
@@ -213,6 +217,7 @@ if (typeof angular == 'undefined')
 
         this.routeConfig = function () {
             var pageViewMap = {},
+                pageRouteMap = {},
                 baseDirectory = '/',
 
             setBaseDirectory = function (baseDir) {
@@ -223,8 +228,19 @@ if (typeof angular == 'undefined')
                 return baseDirectory;
             },
 
-            mapPage = function(pageName, viewUrl) {
+            mapPage = function(pageName, routeUrl, viewUrl) {
                 pageViewMap[pageName] = viewUrl
+                pageRouteMap[routeUrl] = pageName
+            },
+
+            getPageViewFromRoute = function(routeUrl) {
+                var pageName = getPageName(routeUrl)
+                if (!pageName) return
+                return getPageView(pageName)
+            },
+
+            getPageName = function(routeUrl) {
+                return pageRouteMap[routeUrl]
             },
 
             getPageView = function(pageName) {
@@ -235,7 +251,9 @@ if (typeof angular == 'undefined')
                 setBaseDirectory: setBaseDirectory,
                 getBaseDirectory: getBaseDirectory,
                 mapPage: mapPage,
-                getPageView: getPageView
+                getPageName: getPageName,
+                getPageView: getPageView,
+                getPageViewFromRoute: getPageViewFromRoute
             }
         }()
 

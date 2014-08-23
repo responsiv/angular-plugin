@@ -37,7 +37,7 @@
         // routeConfig.setBaseDirectory('/')
 
         {% for page in pages %}
-            routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.baseFilename|page({}, false) }}')
+            routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.url }}', '{{ page.baseFilename|page({}, false) }}')
         {% endfor %}
 
         /*
