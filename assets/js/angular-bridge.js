@@ -61,7 +61,7 @@ if (typeof angular == 'undefined')
                             o.controllers[baseFilename] = function(){}
 
                         o.app.register.controller(baseFilename, o.controllers[baseFilename])
-                        onComplete()
+                        onComplete(data)
                     })
                 }
 
@@ -278,9 +278,11 @@ if (typeof angular == 'undefined')
                     params = $route.current.params,
                     defer = $q.defer()
 
-                october.loadPage(baseName, url, params, function(){
+                october.loadPage(baseName, url, params, function(data){
                     defer.resolve()
-                    // $rootScope.$apply() @todo needed?
+                    $rootScope.$apply(function($scope){
+                        $scope = angular.extend($scope, angular.copy(data.scope))
+                    })
                 })
 
                 return defer.promise;

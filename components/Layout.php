@@ -7,6 +7,7 @@ use Redirect;
 use Cms\Classes\Page;
 use Cms\Classes\ComponentBase;
 use Responsiv\Angular\Classes\PageScript;
+use Responsiv\Angular\Classes\ScopeBag;
 
 /**
  * Angular Layout
@@ -40,7 +41,7 @@ class Layout extends ComponentBase
 
     public function init()
     {
-        $this->scope = $this->page['scope'] = new \stdClass;
+        $this->scope = $this->page['scope'] = new ScopeBag;
         // $this->addJs('assets/js/angular-bridge.js');
     }
 
