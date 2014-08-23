@@ -52,7 +52,11 @@ class Layout extends ComponentBase
     public function onGetPageDependencies()
     {
         $response = [];
+        $this->pageCycle();
 
+        /*
+         * Add the front-end controller, if available.
+         */
         $page = array_get($this->page['this'], 'page');
         $pageScript = PageScript::fromTemplate($page);
 
@@ -65,6 +69,8 @@ class Layout extends ComponentBase
         if ($this->controller->hasAssetsDefined()) {
             $response['X_OCTOBER_ASSETS'] = $this->controller->getAssetPaths();
         }
+
+        $response['scope'] = $this->scope;
 
         return $response;
     }
