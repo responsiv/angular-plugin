@@ -21,6 +21,8 @@ if (typeof angular == 'undefined')
 
             assets: {},
 
+            useStripeLoadIndicator: true,
+
             bootApp: function (app) {
                 o.app = app
 
@@ -28,6 +30,18 @@ if (typeof angular == 'undefined')
 
                     $rootScope.$on('$routeChangeSuccess', function(e, current, pre) {
                         console.log('Current route name: ' + $location.path());
+                    })
+
+                    /*
+                     * Loading indicator
+                     */
+                    $rootScope.$on('$routeChangeSuccess', function(e, current, pre) {
+                        if (o.useStripeLoadIndicator && jQuery.oc.stripeLoadIndicator !== undefined)
+                            jQuery.oc.stripeLoadIndicator.hide()
+                    })
+                    $rootScope.$on('$routeChangeStart', function(e, current, pre) {
+                        if (o.useStripeLoadIndicator && jQuery.oc.stripeLoadIndicator !== undefined)
+                            jQuery.oc.stripeLoadIndicator.show()
                     })
 
                 }])
