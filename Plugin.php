@@ -29,6 +29,12 @@ class Plugin extends PluginBase
 
     public function boot()
     {
+        // sleep(1);
+        Event::listen('cms.page.beforeDisplay', function($controller, $url, $page) {
+            if ($params = post('X_OCTOBER_NG_PARAMS'))
+                $controller->getRouter()->setParameters($params);
+        });
+
         Event::listen('cms.page.display', function($controller, $url, $page) {
             if (array_key_exists('ng-page', Input::all()))
                 return $controller->renderPage();

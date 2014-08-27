@@ -30,12 +30,6 @@ if (typeof angular == 'undefined')
                         console.log('Current route name: ' + $location.path());
                     })
 
-                    // Bind
-                    // $locationChangeSuccess
-                    // $locationChangeStart
-                    // $routeChangeSuccess
-                    // as
-                    // document.render()
                 }])
             },
 
@@ -44,17 +38,11 @@ if (typeof angular == 'undefined')
             // script and execute onComplete function once everything is good to go.
             //
             loadPage: function (baseFilename, url, params, onComplete){
-                // This function should:
-                // - Load X_OCTOBER_ASSETS definition
-                // - Definition should include the page controller function,
-                //   eg: /themes/website/assets/js/controllers/page-filename.js
-                // - Keep an array of Stylesheet elements used
-
-                // The appending of the assets should be recorded by the page-id
-                // so they can be removed from the DOM (stylesheets, JS, etc)
-
                 var options = {}
                 options.url = url
+                options.data = {
+                    X_OCTOBER_NG_PARAMS: params
+                }
                 options.success = function(data) {
                     this.success(data).done(function(){
                         if (!o.controllers[baseFilename])
@@ -68,19 +56,12 @@ if (typeof angular == 'undefined')
                 $.request('onGetPageDependencies', options)
             }
 
-            // leavePage: function (baseFilename) {
-
-            //     // This function should:
-            //     // - Remove all Stylesheet elements from the page
-
-            // }
-
         }
 
         return o
     }
 
-    window.ocNg = new OctoberAngular
+    window.october = new OctoberAngular
 
 }(angular, window);
 
@@ -91,76 +72,6 @@ if (typeof angular == 'undefined')
 +function (angular, october) { "use strict";
 
     var services = angular.module('ocServices', [])
-
-    /*
-     * Blocks
-     */
-    services.service('$cmsBlocks', function($rootScope, $compile, $animate){
-
-        var o = {}
-
-        o.names = []
-        o.map = {}
-        o.puts = {}
-
-        o.put = function (name, element) {
-            o.puts[name] = element
-
-            if (o.map[name] !== undefined)
-                o.replaceContent(o.map[name], element, name)
-        }
-
-        o.placeholder = function (name, element) {
-            o.names.push(name)
-            o.map[name] = element
-
-            if (o.puts[name] !== undefined)
-                o.replaceContent(element, o.puts[name], name)
-        }
-
-        o.replaceContent = function($element, src, name) {
-            var clone = $element.clone().html(src.html()).removeClass('ng-leave')
-            $compile(clone.contents())($rootScope)
-
-            $animate.enter(clone, null, $element);
-            $animate.leave($element)
-            o.map[name] = clone
-        }
-
-        $rootScope.$on('$routeChangeSuccess', function(){
-            o.puts = {}
-            for (var i = 0; i < o.names.length; ++i) {
-                var name = o.names[i]
-                if (o.map[name] !== undefined) {
-                    var $element = o.map[name],
-                        clone = $element.clone().empty().removeClass('ng-leave')
-
-                    $element.after(clone)
-                    $animate.leave($element)
-                    o.map[name] = clone
-                }
-            }
-        })
-
-        return o
-    })
-
-    services.directive('ocPut', ['$cmsBlocks', function ($cmsBlocks) {
-        return {
-            link: function(scope, element, attr, controllers) {
-                $cmsBlocks.put(attr.ocPut, element.clone())
-                element.remove()
-            }
-        }
-    }])
-
-    services.directive('ocPlaceholder', ['$cmsBlocks', function ($cmsBlocks) {
-        return {
-            link: function(scope, element, attr, controllers) {
-                $cmsBlocks.placeholder(attr.ocPlaceholder, element)
-            }
-        }
-    }])
 
     /*
      * Partial loading
@@ -207,6 +118,87 @@ if (typeof angular == 'undefined')
     }])
 
     /*
+     * Blocks
+     */
+    services.service('$cmsBlocks', function($rootScope, $compile, $animate){
+
+        var o = {}
+
+        o.names = []
+        o.map = {}
+        o.puts = {}
+
+        o.put = function (name, element) {
+            o.puts[name] = element
+
+            if (o.map[name] !== undefined)
+                o.replaceContent(o.map[name], element, name)
+        }
+
+        o.placeholder = function (name, element) {
+            o.names.push(name)
+            o.map[name] = element
+
+            if (o.puts[name] !== undefined)
+                o.replaceContent(element, o.puts[name], name)
+        }
+
+        o.replaceContent = function($element, src, name) {
+            var clone = $element.clone().html(src.html()).removeClass('ng-leave')
+            $compile(clone.contents())($rootScope)
+
+            $animate.enter(clone, null, $element);
+            $animate.leave($element)
+            o.map[name] = clone
+
+            $rootScope.$emit('$cmsBlocksReplceContent', name)
+        }
+
+        $rootScope.$on('$routeChangeSuccess', function(){
+            o.puts = {}
+            for (var i = 0; i < o.names.length; ++i) {
+                var name = o.names[i]
+                if (o.map[name] !== undefined) {
+                    var $element = o.map[name],
+                        clone = $element.clone().empty().removeClass('ng-leave')
+
+                    $element.after(clone)
+                    $animate.leave($element)
+                    o.map[name] = clone
+                }
+            }
+        })
+
+        return o
+    })
+
+    services.directive('ocPut', ['$cmsBlocks', function ($cmsBlocks) {
+        return {
+            link: function(scope, element, attr, controllers) {
+                $cmsBlocks.put(attr.ocPut, element.clone())
+                element.remove()
+            }
+        }
+    }])
+
+    services.directive('ocPlaceholder', ['$cmsBlocks', function ($cmsBlocks) {
+        return {
+            link: function(scope, element, attr, controllers) {
+                $cmsBlocks.placeholder(attr.ocPlaceholder, element)
+            }
+        }
+    }])
+
+    /*
+     * Filters
+     */
+    services.filter('page', function($cmsRouter){
+        return function (input, params, routePersistence) {
+            return $cmsRouter.route.pageUrl(input, params);
+        }
+    })
+
+    /*
      * CMS Router
      */
     services.provider('$cmsRouter', function () {
@@ -216,48 +208,196 @@ if (typeof angular == 'undefined')
         }
 
         this.routeConfig = function () {
-            var pageViewMap = {},
-                pageRouteMap = {},
-                baseDirectory = '/',
+            var baseUrl = '/',
+                routeMap = [],
 
-            setBaseDirectory = function (baseDir) {
-                baseDirectory = baseDir;
+            setBaseUrl = function (url) {
+                baseUrl = url
             },
 
-            getBaseDirectory = function () {
-                return baseDirectory;
+            getBaseUrl = function () {
+                return baseUrl
             },
 
-            mapPage = function(pageName, routeUrl, viewUrl) {
-                pageViewMap[pageName] = viewUrl
-                pageRouteMap[routeUrl] = pageName
+            mapPage = function(pageName, routePattern, viewUrl) {
+                routeMap.push({
+                    name: pageName,
+                    pattern: routePattern,
+                    view: viewUrl
+                })
             },
 
-            getPageViewFromRoute = function(routeUrl) {
-                var pageName = getPageName(routeUrl)
-                if (!pageName) return
-                return getPageView(pageName)
-            },
-
-            getPageName = function(routeUrl) {
-                return pageRouteMap[routeUrl]
+            getPageName = function(routePattern) {
+                return fetchValueWhere('name', 'pattern', routePattern)
             },
 
             getPageView = function(pageName) {
-                return pageViewMap[pageName]
+                return fetchValueWhere('view', 'name', pageName)
+            },
+
+            getPagePattern = function(pageName) {
+                return fetchValueWhere('pattern', 'name', pageName)
+            },
+
+            fetchValueWhere = function(fetch, key, value) {
+                var count = routeMap.length
+                for (var i = 0; i < count; ++i) {
+                    if (routeMap[i][key] == value)
+                        return routeMap[i][fetch]
+                }
+
+                return null
             }
 
             return {
-                setBaseDirectory: setBaseDirectory,
-                getBaseDirectory: getBaseDirectory,
+                setBaseUrl: setBaseUrl,
+                getBaseUrl: getBaseUrl,
                 mapPage: mapPage,
                 getPageName: getPageName,
                 getPageView: getPageView,
-                getPageViewFromRoute: getPageViewFromRoute
+                getPagePattern: getPagePattern
             }
         }()
 
-        this.route = function (routeConfig) {
+        this.helper = function (routeConfig) {
+
+            var normalizeUrl = function(url) {
+                if (url.substring(0, 1) != '/')
+                    url = '/' + url
+
+                if (url.substring(-1) == '/')
+                    url = url.substring(0, -1)
+
+                if (!url)
+                    url = '/'
+
+                return url
+            },
+
+            segmentizeUrl = function(url) {
+                url = normalizeUrl(url)
+                var parts = url.split('/'),
+                    result = []
+
+                angular.forEach(parts, function(segment){
+                    if (segment)
+                        result.push(segment)
+                })
+
+                return result
+            },
+
+            getParamName = function(segment) {
+                var name = segment.substring(1),
+                    optMarkerPos = name.indexOf('?'),
+                    regexMarkerPos = name.indexOf('|')
+
+                if (optMarkerPos != -1 && regexMarkerPos != -1) {
+                    if (optMarkerPos < regexMarkerPos)
+                        return name.substring(0, optMarkerPos)
+                    else
+                        return name.substring(0, regexMarkerPos)
+                }
+
+                if (optMarkerPos != -1)
+                    return name.substring(0, optMarkerPos)
+
+                if (regexMarkerPos != -1)
+                    return name.substring(0, regexMarkerPos)
+
+                return name
+            },
+
+            segmentIsOptional = function(segment) {
+                var name = segment.substring(1),
+                    optMarkerPos = name.indexOf('?'),
+                    regexMarkerPos = name.indexOf('|')
+
+                if (optMarkerPos == -1)
+                    return false
+
+                if (regexMarkerPos == -1)
+                    return false
+
+                if (optMarkerPos != -1 && regexMarkerPos != -1)
+                    return optMarkerPos < regexMarkerPos
+
+                return false
+            },
+
+            getSegmentDefaultValue = function(segment) {
+                var name = segment.substring(1),
+                    optMarkerPos = name.indexOf('?'),
+                    regexMarkerPos = name.indexOf('|'),
+                    value = false
+
+                if (optMarkerPos == -1)
+                    return false
+
+                if (regexMarkerPos != -1)
+                    value = segment.substring(optMarkerPos + 1, regexMarkerPos - optMarkerPos - 1)
+                else
+                    value = segment.substring(optMarkerPos + 1)
+
+                return value ? value : false
+            },
+
+            urlFromPattern = function (pattern, params) {
+                var url = [],
+                    cleanParams = {},
+                    segments = segmentizeUrl(pattern),
+                    segmentCount = segments.length,
+                    params = params ? params : {},
+                    paramCount = params.length
+
+                angular.forEach(params, function(value, param) {
+                    var newValue = (param.charAt(0) == ':')
+                        ? param.substring(1)
+                        : param
+
+                    cleanParams[param] = value
+                })
+
+                params = cleanParams
+
+                angular.forEach(segments, function(segment, index){
+                    if (segment.charAt(0) != ':') {
+                        url.push(segment)
+                    }
+                    else {
+                        var paramName = getParamName(segment),
+                            optional = segmentIsOptional(segment)
+
+                        if (params[paramName]) {
+                            url.push(params[paramName])
+                        }
+                        else if (optional) {
+                            url.push(getSegmentDefaultValue(segment))
+                        }
+                        else {
+                            url.push('default')
+                        }
+                    }
+                })
+
+                var lastPopulatedIndex = 0
+                angular.forEach(url, function(segment, index) {
+                    if (segment)
+                        lastPopulatedIndex = index
+                    else
+                        url[index] = 'default'
+                })
+                url = url.slice(0, lastPopulatedIndex + 1)
+
+                return normalizeUrl(url.join('/'))
+            }
+
+            return {
+                urlFromPattern: urlFromPattern
+            }
+        }(this.routeConfig)
+
+        this.route = function (routeConfig, helper) {
 
             var resolve = function (baseName) {
                 var routeDef = {}
@@ -291,16 +431,24 @@ if (typeof angular == 'undefined')
             makeTemplateUrl = function (baseName, params) {
                 var url = routeConfig.getPageView(baseName)
                 return url + '?ng-page'
+            },
+
+            pageUrl = function(name, params) {
+                var pattern = routeConfig.getPagePattern(name),
+                    url = helper.urlFromPattern(pattern, params)
+
+                return routeConfig.getBaseUrl() + url
             }
 
             return {
-                resolve: resolve
+                resolve: resolve,
+                pageUrl: pageUrl
             }
-        }(this.routeConfig)
+        }(this.routeConfig, this.helper)
 
     })
 
-}(angular, window.ocNg);
+}(angular, window.october);
 
 
 /*
