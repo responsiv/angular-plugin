@@ -9,7 +9,7 @@ use Cms\Classes\Theme;
 class PageScript
 {
 
-    const JS_OBJECT = 'ocNg';
+    const JS_OBJECT = 'october';
 
     protected $template;
 

@@ -102,5 +102,5 @@ Each page is extended to include a **Script** tab inside the CMS that is defined
 
 This translates to
 
-    ocNg.controllers['page/filename'] = function($scope) { ... }
+    october.controllers['page/filename'] = function($scope) { ... }
 

@@ -16,6 +16,22 @@ use Responsiv\Angular\Classes\ScopeBag;
  */
 class Layout extends ComponentBase
 {
+
+    /**
+     * @var array List of dependencies for the application module.
+     */
+    public $dependencies = ['ngRoute', 'ngAnimate', 'ngSanitize', 'ocServices'];
+
+    /**
+     * @var string A JavaScript array for each dependency.
+     */
+    public $dependencyString;
+
+    /**
+     * @var array Collection of pages that belong to this layout.
+     */
+    public $pages;
+
     public function componentDetails()
     {
         return [
@@ -47,7 +63,8 @@ class Layout extends ComponentBase
 
     public function onRun()
     {
-        $this->page['pages'] = Page::all();
+        $this->pages = $this->page['pages'] = Page::all();
+        $this->dependencyString = $this->page['dependencyString'] = $this->getModuleDependencies();
     }
 
     public function onGetPageDependencies()
@@ -73,7 +90,23 @@ class Layout extends ComponentBase
 
         $response['scope'] = $this->scope;
 
+        traceLog($this->scope);
+
         return $response;
+    }
+
+    public function addModuleDependency($name)
+    {
+        if (in_array($name, $this->dependencies))
+            return false;
+
+        $this->dependencies[] = $name;
+        return true;
+    }
+
+    public function getModuleDependencies()
+    {
+        return "['".implode("', '", $this->dependencies)."']";
     }
 
 }

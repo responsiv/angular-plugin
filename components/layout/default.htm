@@ -2,11 +2,7 @@
 
 <script>
 
-    var app = angular.module('{{ __SELF__ }}', [
-      'ngRoute',
-      'ngAnimate',
-      'ocServices'
-    ]), {{ __SELF__ }} = app
+    var app = angular.module('{{ __SELF__ }}', {{ dependencyString|raw }}), {{ __SELF__ }} = app
 
     app.config(
         ['$routeProvider', '$cmsRouterProvider', '$locationProvider', '$controllerProvider', '$compileProvider', '$filterProvider', '$provide',
@@ -33,8 +29,8 @@
          */
         var routeConfig = $cmsRouterProvider.routeConfig
 
-        // Change base directory to use the master page as root:
-        // routeConfig.setBaseDirectory('/')
+        // Change base url
+        routeConfig.setBaseUrl('{{ '/'|app }}')
 
         {% for page in pages %}
             routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.url }}', '{{ page.baseFilename|page({}, false) }}')
@@ -52,7 +48,7 @@
         return app
     }])
 
-    ocNg.bootApp(app)
+    october.bootApp(app)
 
 // <button ng-click="triggerChange()" >Trigger Change</button>
 // $scope.triggerChange = function () { $scope.firstName = ''; };
