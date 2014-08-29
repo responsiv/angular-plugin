@@ -221,7 +221,6 @@ if (typeof angular == 'undefined')
                     defer.resolve()
                     $rootScope.$apply(function($scope){
                         $scope = angular.extend($scope, angular.copy(data.scope))
-                        $rootScope = angular.extend($rootScope, angular.copy(data.rootScope))
                     })
                 })
 

@@ -37,11 +37,6 @@ class Layout extends ComponentBase
      */
     public $scope;
 
-    /**
-     * @var ScopeBag Root scope variables.
-     */
-    public $rootScope;
-
     public function componentDetails()
     {
         return [
@@ -65,7 +60,6 @@ class Layout extends ComponentBase
 
     public function init()
     {
-        $this->rootScope = $this->page['rootScope'] = new ScopeBag;
         $this->scope = $this->page['scope'] = new ScopeBag;
         // $this->addJs('assets/js/angular-bridge.js');
     }
@@ -98,7 +92,6 @@ class Layout extends ComponentBase
         }
 
         $response['scope'] = $this->scope;
-        $response['rootScope'] = $this->rootScope;
 
         return $response;
     }
