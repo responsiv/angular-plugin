@@ -45,12 +45,12 @@
             $routeProvider.when('{{ page.url }}', route.resolve('{{ page.baseFileName }}'))
         {% endfor %}
 
+        // @todo This should be page name with 404
+        $routeProvider.otherwise({ redirectTo: '/404' })
+
         return app
     }])
 
     october.bootApp(app)
-
-// <button ng-click="triggerChange()" >Trigger Change</button>
-// $scope.triggerChange = function () { $scope.firstName = ''; };
 
 </script>

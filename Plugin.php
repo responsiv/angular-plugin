@@ -36,8 +36,13 @@ class Plugin extends PluginBase
         });
 
         Event::listen('cms.page.display', function($controller, $url, $page) {
-            if (array_key_exists('ng-page', Input::all()))
-                return $controller->renderPage();
+            if (array_key_exists('ng-page', Input::all())) {
+                if ($content = $controller->renderPage())
+                    return $content;
+
+                // If we don't return something, this will cause an infinite loop
+                return '<!-- No content -->';
+            }
         });
 
         Event::listen('cms.page.init', function($controller, $url, $page) {
