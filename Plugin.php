@@ -21,8 +21,8 @@ class Plugin extends PluginBase
     {
         return [
             'name'        => 'Angular',
-            'description' => 'No description provided yet...',
-            'author'      => 'Responsiv',
+            'description' => 'Tools for working with AngularJS',
+            'author'      => 'Responsiv Internet',
             'icon'        => 'icon-leaf'
         ];
     }
