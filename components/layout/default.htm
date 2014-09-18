@@ -1,5 +1,4 @@
-<script src="/octotest/plugins/responsiv/angular/assets/js/angular-bridge.js"></script>
-
+<script src="{{ ['$/responsiv/angular/assets/js/angular-bridge.js']|theme }}"></script>
 <script>
 
     var app = angular.module('{{ __SELF__ }}', {{ dependencyString|raw }}), {{ __SELF__ }} = app
