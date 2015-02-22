@@ -23,7 +23,7 @@ class ScopeBag implements ArrayAccess, Arrayable, Countable, Jsonable, JsonSeria
      */
     public function add($key, $value)
     {
-        if ($value instanceof ArrayableInterface)
+        if ($value instanceof Arrayable)
             $value = $value->toArray();
 
         $this->vars[$key] = $value;
