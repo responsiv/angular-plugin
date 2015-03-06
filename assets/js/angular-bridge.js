@@ -29,6 +29,9 @@ if (typeof angular == 'undefined')
                 app.run(['$rootScope','$location', '$routeParams', function($rootScope, $location, $routeParams) {
 
                     $rootScope.$on('$routeChangeSuccess', function(e, current, pre) {
+
+                        console.log(current)
+                        $rootScope.title =$location.path()
                         console.log('Current route name: ' + $location.path());
                     })
 
@@ -69,6 +72,7 @@ if (typeof angular == 'undefined')
 
                 $.request('onGetPageDependencies', options)
             }
+
 
         }
 
@@ -156,6 +160,7 @@ if (typeof angular == 'undefined')
             },
 
             mapPage = function(pageName, routePattern, viewUrl) {
+
                 routeMap.push({
                     name: pageName,
                     pattern: routePattern,
@@ -205,6 +210,7 @@ if (typeof angular == 'undefined')
                 routeDef.controller = baseName
                 routeDef.resolve = {
                     load: ['$q', '$rootScope', '$route', function ($q, $rootScope, $route) {
+       
                         return resolveDependencies($q, $rootScope, $route, baseName)
                     }]
                 }
@@ -213,6 +219,7 @@ if (typeof angular == 'undefined')
             },
 
             resolveDependencies = function ($q, $rootScope, $route, baseName) {
+                
                 var url = routeConfig.getPageView(baseName),
                     params = $route.current.params,
                     defer = $q.defer()

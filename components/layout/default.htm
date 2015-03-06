@@ -35,6 +35,10 @@
             routeConfig.mapPage('{{ page.baseFileName }}', '{{ page.url }}', '{{ page.baseFilename|page({}, false) }}')
         {% endfor %}
 
+         {% for page in routes %}
+            routeConfig.mapPage('{{ page.file }}', '{{ page.url }}', '{{'/'|app  }}/{{page.url}}', '{{ page.title }}')
+        {% endfor %}
+
         /*
          * Define routes - controllers will be loaded dynamically
          */
@@ -44,11 +48,16 @@
             $routeProvider.when('{{ page.url }}', route.resolve('{{ page.baseFileName }}'))
         {% endfor %}
 
+          {% for page in routes %}
+            $routeProvider.when('{{ page.url }}', route.resolve('{{ page.file }}'))
+        {% endfor %}
+
         // @todo This should be page name with 404
         $routeProvider.otherwise({ redirectTo: '/404' })
 
         return app
     }])
+
 
     october.bootApp(app)
 
