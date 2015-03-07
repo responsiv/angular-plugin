@@ -1,17 +1,15 @@
-<?php namespace Responsiv\Angular\Components;
+<?php
+namespace Responsiv\Angular\Components;
 
-use Auth;
-use File;
-use Request;
-use Redirect;
-use Cms\Classes\Page;
 use Cms\Classes\ComponentBase;
+use Cms\Classes\Page;
+use Responsiv\Angular\Classes\MapPages;
 use Responsiv\Angular\Classes\PageScript;
 use Responsiv\Angular\Classes\ScopeBag;
 
 /**
  * Angular Layout
- * 
+ *
  * Allocates a layout to work for angular.
  */
 class Layout extends ComponentBase
@@ -20,7 +18,7 @@ class Layout extends ComponentBase
     /**
      * @var array List of dependencies for the application module.
      */
-    public $dependencies = ['ngRoute', 'ngAnimate', 'ngSanitize', 'ocServices'];
+    public $dependencies = ['ngRoute', 'ngAnimate', 'ngSanitize', 'ocServices', 'owl.carousel'];
 
     /**
      * @var string A JavaScript array for each dependency.
@@ -32,6 +30,8 @@ class Layout extends ComponentBase
      */
     public $pages;
 
+    public $routes;
+
     /**
      * @var ScopeBag Controller scope variables.
      */
@@ -40,8 +40,8 @@ class Layout extends ComponentBase
     public function componentDetails()
     {
         return [
-            'name'           => 'Angular Layout',
-            'description'    => 'Allocate a layout for use with AngularJS.',
+            'name' => 'Angular Layout',
+            'description' => 'Allocate a layout for use with AngularJS.',
         ];
     }
 
@@ -49,10 +49,10 @@ class Layout extends ComponentBase
     {
         return [
             'idParam' => [
-                'title'       => 'Slug param name',
+                'title' => 'Slug param name',
                 'description' => 'The URL route parameter used for looking up the channel by its slug. A hard coded slug can also be used.',
-                'default'     => ':slug',
-                'type'        => 'string',
+                'default' => ':slug',
+                'type' => 'string',
             ],
 
         ];
@@ -61,11 +61,18 @@ class Layout extends ComponentBase
     public function init()
     {
         $this->scope = $this->page['scope'] = new ScopeBag;
+
         // $this->addJs('assets/js/angular-bridge.js');
     }
 
     public function onRun()
     {
+
+        $static_pages = new MapPages;
+        if (MapPages::hasStaticPage()) {
+            $this->routes = $this->page['routes'] = $static_pages->listPages();
+        }
+
         $this->pages = $this->page['pages'] = Page::all();
         $this->dependencyString = $this->page['dependencyString'] = $this->getModuleDependencies();
     }
@@ -78,11 +85,13 @@ class Layout extends ComponentBase
         /*
          * Add the front-end controller, if available.
          */
+
         $page = array_get($this->page['this'], 'page');
         $pageScript = PageScript::fromTemplate($page);
 
-        if ($scriptPath = $pageScript->getPublicPath())
-            $this->addJs($scriptPath.'?v='.$page->mtime);
+        if ($scriptPath = $pageScript->getPublicPath()) {
+            $this->addJs($scriptPath . '?v=' . $page->mtime);
+        }
 
         /*
          * Detect assets
@@ -98,8 +107,9 @@ class Layout extends ComponentBase
 
     public function addModuleDependency($name)
     {
-        if (in_array($name, $this->dependencies))
+        if (in_array($name, $this->dependencies)) {
             return false;
+        }
 
         $this->dependencies[] = $name;
         return true;
@@ -107,7 +117,7 @@ class Layout extends ComponentBase
 
     public function getModuleDependencies()
     {
-        return "['".implode("', '", $this->dependencies)."']";
+        return "['" . implode("', '", $this->dependencies) . "']";
     }
 
 }

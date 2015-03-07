@@ -1,7 +1,8 @@
-<?php namespace Responsiv\Angular\Classes;
+<?php
+namespace Responsiv\Angular\Classes;
 
-use File;
 use Cms\Classes\Theme;
+use File;
 
 /**
  * Helper for the Script tab via Page CmsObject
@@ -15,11 +16,13 @@ class PageScript
 
     public function __construct($template)
     {
+
         $this->template = $template;
     }
 
     public static function fromTemplate($template)
     {
+
         return new static($template);
     }
 
@@ -29,8 +32,9 @@ class PageScript
      */
     public function populate()
     {
-        if (strlen($this->template->script))
+        if (strlen($this->template->script)) {
             return;
+        }
 
         $this->template->script = $this->readTemplateScript();
     }
@@ -43,8 +47,10 @@ class PageScript
      */
     public function save($content)
     {
-        if ($content == $this->getDefaultScriptContent())
+
+        if ($content == $this->getDefaultScriptContent()) {
             return;
+        }
 
         $this->writeTemplateScript($content);
     }
@@ -56,8 +62,9 @@ class PageScript
     public function getPublicPath()
     {
         $path = $this->getTemplateScriptPath();
-        if (!File::isFile($path))
+        if (!File::isFile($path)) {
             return;
+        }
 
         return File::localToPublic($path);
     }
@@ -68,17 +75,20 @@ class PageScript
         $assetPath = $theme->getPath() . '/assets';
         $fileName = $this->template->getBaseFileName();
 
-        $jsPath = $assetPath.'/javascript';
-        if (!File::isDirectory($jsPath)) $jsPath = $assetPath.'/js';
+        $jsPath = $assetPath . '/javascript';
+        if (!File::isDirectory($jsPath)) {
+            $jsPath = $assetPath . '/js';
+        }
 
-        return $jsPath.'/controllers/'.$fileName.'.js';
+        return $jsPath . '/controllers/' . $fileName . '.js';
     }
 
     protected function readTemplateScript()
     {
         $path = $this->getTemplateScriptPath();
-        if (!File::isFile($path))
+        if (!File::isFile($path)) {
             return $this->getDefaultScriptContent();
+        }
 
         return $this->removeControllerDefinition(File::get($path));
     }
@@ -87,20 +97,22 @@ class PageScript
     {
         $path = $this->getTemplateScriptPath();
         $dir = dirname($path);
-        if (!File::isDirectory($dir))
+        if (!File::isDirectory($dir)) {
             File::makeDirectory($dir, 0755, true);
+        }
 
         File::put($path, $this->addControllerDefinition($content));
     }
 
     protected function getDefaultScriptContent()
     {
-        return 'function ($scope, $request) {'.PHP_EOL.'}';
+
+        return 'function ($scope, $request) {' . PHP_EOL . '}';
     }
 
     protected function removeControllerDefinition($content)
     {
-        return preg_replace('#^([\s]*'.static::JS_OBJECT.'.controllers\[[^\]]+\][\s]*=[\s]*)#si', '', $content);
+        return preg_replace('#^([\s]*' . static::JS_OBJECT . '.controllers\[[^\]]+\][\s]*=[\s]*)#si', '', $content);
     }
 
     protected function addControllerDefinition($content)
