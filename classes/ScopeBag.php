@@ -1,12 +1,12 @@
 <?php namespace Responsiv\Angular\Classes;
 
 use JsonSerializable;
-use Illuminate\Support\Contracts\JsonableInterface;
-use Illuminate\Support\Contracts\ArrayableInterface;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Contracts\Support\Arrayable;
 use ArrayAccess;
 use Countable;
 
-class ScopeBag implements ArrayAccess, ArrayableInterface, Countable, JsonableInterface, JsonSerializable
+class ScopeBag implements ArrayAccess, Arrayable, Countable, Jsonable, JsonSerializable
 {
 
     /**
@@ -23,7 +23,7 @@ class ScopeBag implements ArrayAccess, ArrayableInterface, Countable, JsonableIn
      */
     public function add($key, $value)
     {
-        if ($value instanceof ArrayableInterface)
+        if ($value instanceof Arrayable)
             $value = $value->toArray();
 
         $this->vars[$key] = $value;

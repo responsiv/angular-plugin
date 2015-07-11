@@ -1,4 +1,10 @@
-<script src="{{ ['$/responsiv/angular/assets/js/angular-bridge.js']|theme }}"></script>
+<script src="{{ [
+    '$/responsiv/angular/assets/vendor/angular/angular.js',
+    '$/responsiv/angular/assets/vendor/angular/angular-route.js',
+    '$/responsiv/angular/assets/vendor/angular/angular-animate.js',
+    '$/responsiv/angular/assets/vendor/angular/angular-sanitize.js',
+    '$/responsiv/angular/assets/js/angular-bridge.js'
+]|theme }}"></script>
 <script>
 
     var app = angular.module('{{ __SELF__ }}', {{ dependencyString|raw }}), {{ __SELF__ }} = app

@@ -31,23 +31,29 @@ class Plugin extends PluginBase
     {
         // sleep(1);
         Event::listen('cms.page.beforeDisplay', function($controller, $url, $page) {
-            if ($params = post('X_OCTOBER_NG_PARAMS'))
+            if ($params = post('X_OCTOBER_NG_PARAMS')) {
                 $controller->getRouter()->setParameters($params);
+            }
         });
 
         Event::listen('cms.page.display', function($controller, $url, $page) {
-            if (array_key_exists('ng-page', Input::all())) {
-                if ($content = $controller->renderPage())
+            if (
+                array_key_exists('ng-page', Input::all()) &&
+                $controller->getAjaxHandler() === null
+            ) {
+                if ($content = $controller->renderPage()) {
                     return $content;
+                }
 
                 // If we don't return something, this will cause an infinite loop
                 return '<!-- No content -->';
             }
         });
 
-        Event::listen('cms.page.init', function($controller, $url, $page) {
-            if ($partial = post('ng-partial'))
+        Event::listen('cms.page.init', function($controller, $page) {
+            if ($partial = post('ng-partial')) {
                 return $controller->renderPartial($partial);
+            }
         });
 
         Event::listen('backend.form.extendFields', function($widget) {
@@ -69,7 +75,9 @@ class Plugin extends PluginBase
         Event::listen('cms.template.save', function($controller, $template, $type){
             if ($type != 'page') return;
 
-            PageScript::fromTemplate($template)->save(post('script'));
+            $script = PageScript::fromTemplate($template);
+            $script->fill(post('script'));
+            $script->save();
         });
     }
 
