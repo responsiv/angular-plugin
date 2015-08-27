@@ -76,8 +76,7 @@ class Plugin extends PluginBase
             if ($type != 'page') return;
 
             $script = PageScript::fromTemplate($template);
-            $script->fill(post('script'));
-            $script->save();
+            $script->save(post('script'));
         });
     }
 
